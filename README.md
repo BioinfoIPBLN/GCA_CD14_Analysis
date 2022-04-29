@@ -2,7 +2,7 @@
 <h1 align="center">Methylome and transcriptome profiling of giant cell arteritis monocytes reveals novel pathways involved in disease pathogenesis and molecular response to glucocorticoids</h1>
 
 
-<h6 align="center">Elkyn Estupiñán-Moreno, Lourdes Ortiz-Fernández, Tianlu Li, José Hernández-Rodríguez, Laura Ciudad, Eduardo Andrés-León, Laura Carmen Terron-Camero, Sergio Prieto-González, Georgina Espígol-Frigolé, Maria C. Cid, Ana Márquez, Esteban Ballestar and Javier Martín.</h6>
+<h6 align="justify">Elkyn Estupiñán-Moreno, Lourdes Ortiz-Fernández, Tianlu Li, José Hernández-Rodríguez, Laura Ciudad, Eduardo Andrés-León, Laura Carmen Terron-Camero, Sergio Prieto-González, Georgina Espígol-Frigolé, Maria C. Cid, Ana Márquez, Esteban Ballestar and Javier Martín.</h6>
 
 
 ## ABSTRACT
