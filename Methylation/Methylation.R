@@ -227,8 +227,7 @@ GCA_CTRL_FDR_P_FDR <- GCA_vs_CTRL_FDR[,c(1,4,5)]
 TABLA_FINAL_GCA_CTRL <- cbind(CHR, BP_F, GENES, GRUPO, ISLA, DMPs_BETA_ORDEN_FDR, GCA_CTRL_FDR_P_FDR)
 TABLA_FINAL_GCA_CTRL$METHYLATION = ifelse(TABLA_FINAL_GCA_CTRL$FDR < 0.05 & abs(TABLA_FINAL_GCA_CTRL$Dif_Beta) >= 0, 
                                   ifelse(TABLA_FINAL_GCA_CTRL$Dif_Beta > 0 ,'Hypermethylated','Hypomethylated'),'Stable')
-
-
+write.table(TABLA_FINAL_GCA_CTRL, file = "TABLA_FINAL_GCA_CTRL.txt", sep = "\t", quote = F)
     
 
  
