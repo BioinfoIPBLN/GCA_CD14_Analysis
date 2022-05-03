@@ -19,7 +19,7 @@ rgset <- minfi::read.metharray.exp(
 
 #pheno
 pdata <- as.data.frame(pData(rgset))
-#SNPs
+# SNPs
 snps <- data.frame(getSnpBeta(rgset))
 
 #Quality Control before normalization
@@ -48,18 +48,18 @@ gset <- minfi::preprocessQuantile(minfi::preprocessNoob(rgset))
 sex_info <- as.data.frame(minfi::pData(gset)[, c("xMed", "yMed", "predictedSex")])
 sex_info$sample <- pdata$Sample_Name
     
-# remove SNPs and CHs
+#Remove SNPs and CHs
 gset <- minfi::dropLociWithSnps(gset)
 gset <- minfi::dropMethylationLoci(gset,
                                    dropRS = TRUE,
                                    dropCH = TRUE)
-# remove chromosomes
+#Remove chromosomes
 gset <- gset[rownames(minfi::getAnnotation(gset))[!(minfi::getAnnotation(gset)$chr %in%
                                                       c("chrX", "chrY"))], ]
-# remove bad probes
+#Remove bad probes
 gset <- gset[minfi::featureNames(gset)[!(minfi::featureNames(gset) %in% bad_pos)],]
 
-# Quality control after normalization
+#Quality control after normalization
 qcReport_gset <- function(input=gset, sampNames = x, path = ""){
   pdf(path)
   densityPlot(input)
@@ -77,7 +77,7 @@ Beta[Beta > 0.98999999]<-0.989
 Beta <- na.omit(Beta)
 M = lumi::beta2m(Beta)
 
-# Multidimensinal scaling plot - Batch effect
+#Multidimensinal scaling plot - Batch effect
 
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Group, sampNames = pdata$Sample_Name, legendPos =  "topright", main = "Meth_Disease")
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Disease_Group, sampNames = pdata$Sample_Name, legendPos =  "topright", main = "Meth_Disease")
@@ -88,7 +88,7 @@ mdsPlot(M, numPositions = 500000, sampGroups = pdata$Array, sampNames = pdata$Sa
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Sample_plate, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Sample_Plate")
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Day_sorter, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Day_Sorter")
    
-# PCA
+#PCA
 M1 <- data.frame(t(M))
 PCobj = prcomp(M1, retx = T, center = T, scale. = T)
 attributes(PCobj) 
@@ -104,7 +104,7 @@ autoplot(PCobj, data = pdata, colour = "Sample_plate", label.size = 3, shape = F
 autoplot(PCobj, data = pdata, colour = "Sample_Well", label.size = 3, shape = FALSE)
 autoplot(PCobj, data = pdata, colour = "Day_sorter", label.size = 3, shape = FALSE)
     
-# Statistical analysis
+#Statistical analysis
 Function_limma <- function(input = M, pdata = pdata, sample_group = sample_group, sex = NULL, age = NULL, 
                     batch = NULL, arrayweights = F, trend = F, robust = F, testgroup = "GCA", controlgroup = "CTRL"){
   library(limma)
@@ -161,13 +161,13 @@ Function_limma <- function(input = M, pdata = pdata, sample_group = sample_group
 }
 
 
-# GCA vs CTRL
+#GCA vs CTRL
 GCA_vs_CTRL <- Function_limma(input=na.omit(M), pdata = pdata, sample_group =  pdata$Group, age = NULL, arrayweights = T, trend = T, robust = T,  testgroup = "GCA", controlgroup = "CTRL")
 GCA_vs_CTRL_FDR <- GCA_vs_CTRL[GCA_vs_CTRL$adj.P.Val < 0.05,] 
 GCA_vs_CTRL_Hyper <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC > 0,] 
 GCA_vs_CTRL_Hypo <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC < 0,]
  
-# β-value differentially
+#β-value differentially
   
 Function_merge <- function(x = beta, y = FDR, by = 0){
   matrix <- merge(x, y, by=by)
@@ -213,7 +213,7 @@ rownames(Genes2) <- Genes$rownames.annotation.
 GENES = data.frame(Genes2[c(rownames(GCA_vs_CTRL_FDR)),])
 rownames(GENES) <- rownames(GCA_vs_CTRL_FDR)
 
-# Chromosomes
+#Chromosome
 Chromosome <- data.frame(annotation$chr, rownames(annotation))
 Chromosome2 <- Chromosome[Chromosome$rownames.annotation.. %in% rownames(GCA_vs_CTRL_FDR),]
 Borrar <- c("rownames.annotation.")
