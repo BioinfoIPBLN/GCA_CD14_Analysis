@@ -9,10 +9,8 @@ library(data.table)
 library(factoextra)
 
 ## Reading data ####
-
 baseDir <- "Raw_data"
 targets <- read.metharray.sheet(baseDir)
-
 rgset <- minfi::read.metharray.exp(
   targets = targets, verbose = TRUE,
   force = TRUE)
@@ -31,11 +29,9 @@ quality_copntrol <- as.data.frame(minfi::getQC(minfi::preprocessRaw(rgset))) %>%
       .data$mMed < badSampleCutoff |
         .data$uMed < badSampleCutoff,
       "Suboptimal",
-      "OK"
-    )
-    
- qcReport(rgset, sampNames=pdata$Sample_Name, sampGroups=pdata$Disease_Group, pdf="qcReport.pdf")
- densityPlot(rgset, sampGroups = pdata$Disease_Group, main = "METHYLATION", legend = TRUE, xlim = c(0,1.0), ylim =c(0,4.5))
+      "OK")
+qcReport(rgset, sampNames=pdata$Sample_Name, sampGroups=pdata$Disease_Group, pdf="qcReport.pdf")
+densityPlot(rgset, sampGroups = pdata$Disease_Group, main = "METHYLATION", legend = TRUE, xlim = c(0,1.0), ylim =c(0,4.5))
  
 #Bad probes
 detP <- minfi::detectionP(rgset)
@@ -65,12 +61,10 @@ qcReport_gset <- function(input=gset, sampNames = x, path = ""){
   densityPlot(input)
   densityBeanPlot(input, sampNames = sampNames)
   dev.off()}
-
 qcReport_gset(input = as.matrix(getBeta(gset)), sampNames = pdata$Sample_Name, path = "QC.pdf")
     
 #Get Beta and M values
 #Eliminate Inf values from 
-
 Beta <- as.data.frame(getBeta(gset))
 Beta[Beta == 0]<-0.0001
 Beta[Beta > 0.98999999]<-0.989
@@ -78,7 +72,6 @@ Beta <- na.omit(Beta)
 M = lumi::beta2m(Beta)
 
 #Multidimensinal scaling plot - Batch effect
-
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Group, sampNames = pdata$Sample_Name, legendPos =  "topright", main = "Meth_Disease")
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Disease_Group, sampNames = pdata$Sample_Name, legendPos =  "topright", main = "Meth_Disease")
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Sex, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Sex")
@@ -160,7 +153,6 @@ Function_limma <- function(input = M, pdata = pdata, sample_group = sample_group
   }
 }
 
-
 #GCA vs CTRL
 GCA_vs_CTRL <- Function_limma(input=na.omit(M), pdata = pdata, sample_group =  pdata$Group, age = NULL, arrayweights = T, trend = T, robust = T,  testgroup = "GCA", controlgroup = "CTRL")
 GCA_vs_CTRL_FDR <- GCA_vs_CTRL[GCA_vs_CTRL$adj.P.Val < 0.05,] 
@@ -168,13 +160,11 @@ GCA_vs_CTRL_Hyper <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC > 0,]
 GCA_vs_CTRL_Hypo <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC < 0,]
  
 #β-value differentially
-  
 Function_merge <- function(x = beta, y = FDR, by = 0){
   matrix <- merge(x, y, by=by)
   rownames(matrix)<-matrix[,1]
   matrix[,-1]
 }
-
 Beta_merged <- Function_merge(x = Beta, y =GCA_vs_CTRL , by=0)    
 CTRL <- pdata$Sample_Name[pdata$Disease_Group=="CTRL"]
 GCA <- pdata$Sample_Name[pdata$Disease_Group=="GCA"]
