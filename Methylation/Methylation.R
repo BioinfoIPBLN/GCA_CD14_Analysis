@@ -103,6 +103,70 @@ autoplot(PCobj, data = pdata, colour = "Sample_plate", label.size = 3, shape = F
 autoplot(PCobj, data = pdata, colour = "Sample_Well", label.size = 3, shape = FALSE)
 autoplot(PCobj, data = pdata, colour = "Day_sorter", label.size = 3, shape = FALSE)
     
+# Statistical analysis
+Function_limma <- function(input = M, pdata = pdata, sample_group = sample_group, sex = NULL, age = NULL, 
+                    batch = NULL, arrayweights = F, trend = F, robust = F, testgroup = "GCA", controlgroup = "CTRL"){
+  library(limma)
+  if(is.null(sex)){
+    if(is.null(age)){
+      if(is.null(batch)){message("Covariate detected: NULL")
+        design = model.matrix(~0+sample_group)
+      } else{message("Covariate detected: batch")
+        design = model.matrix(~0+sample_group + batch)
+      }
+    } else{
+      message("Covariate detected: age")
+      if(is.null(batch)){
+        design = model.matrix(~0+sample_group + age)
+      } else{message("Covariate detected: batch")
+        design = model.matrix(~0+sample_group + batch + age)
+      }
+    }
+  } else{message("Covariate detected: sex")
+    if(is.null(age)){
+      if(is.null(batch)){
+        design = model.matrix(~0+sample_group + sex)
+      } else{message("Covariate detected: batch")
+        design = model.matrix(~0+sample_group + batch + sex)
+      }
+    } else{
+      if(is.null(batch)){
+        design = model.matrix(~0+sample_group + age + sex)
+      } else{message("Covariate detected: age")
+        design = model.matrix(~0+sample_group + batch + age + sex)
+      }
+    }
+  }
+  
+  if (!isTRUE(arrayweights)){message("No array weights detected")
+    fit <- lmFit(input, design)
+    contrast <-paste(paste0("sample_group", testgroup), 
+                     paste0("sample_group", controlgroup), sep="-")
+    contrast_tissue.matrix <- makeContrasts(contrasts = contrast, levels=design)
+    fit_Patients = contrasts.fit(fit, contrast_tissue.matrix)
+    fit_Patients <- eBayes(fit_Patients, trend = trend)
+    topTable(fit_Patients, coef=1,adjust.method="fdr", n=Inf)
+  }else {message("Fitting array weights...")
+    array_weight = arrayWeights(input, design=design)
+    corweight = asMatrixWeights(array_weight, dim(input))
+    fit <- lmFit(input, design,weights=corweight)
+    contrast <-paste(paste0("sample_group", testgroup), 
+                     paste0("sample_group", controlgroup), sep="-")
+    contrast_tissue.matrix <- makeContrasts(contrasts = contrast, levels=design)
+    fit_Patients = contrasts.fit(fit, contrast_tissue.matrix)
+    fit_Patients <- eBayes(fit_Patients, trend = trend, robust = robust)
+    topTable(fit_Patients, coef=1,adjust.method="fdr", n=Inf)
+  }
+}
+
+
+# GCA vs CTRL
+GCA_vs_CTRL <- T_limma(input=na.omit(M), pdata = pdata, sample_group =  pdata$Group, age = NULL, arrayweights = T, trend = T, robust = T,  testgroup = "GCA", controlgroup = "CTRL")
+GCA_vs_CTRL_FDR <- GCA_vs_CTRL[GCA_vs_CTRL$adj.P.Val < 0.05,] 
+GCA_vs_CTRL_Hyper <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC > 0,] 
+GCA_vs_CTRL_Hypo <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC < 0,]
+    
+    
     
     
  
