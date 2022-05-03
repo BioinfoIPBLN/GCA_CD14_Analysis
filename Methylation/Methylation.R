@@ -2,6 +2,7 @@
 
 library(IlluminaHumanMethylationEPICmanifest)
 library(IlluminaHumanMethylationEPICanno.ilm10b4.hg19)
+library(IlluminaHumanMethylationEPICanno.ilm10b5.hg38)
 library(limma)
 library(minfi)
 library(minfiData)
