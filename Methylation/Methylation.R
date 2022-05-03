@@ -6,6 +6,7 @@ library(limma)
 library(minfi)
 library(minfiData)
 library(data.table)
+library(factoextra)
 
 ## Reading data ####
 
@@ -161,13 +162,84 @@ Function_limma <- function(input = M, pdata = pdata, sample_group = sample_group
 
 
 # GCA vs CTRL
-GCA_vs_CTRL <- T_limma(input=na.omit(M), pdata = pdata, sample_group =  pdata$Group, age = NULL, arrayweights = T, trend = T, robust = T,  testgroup = "GCA", controlgroup = "CTRL")
+GCA_vs_CTRL <- Function_limma(input=na.omit(M), pdata = pdata, sample_group =  pdata$Group, age = NULL, arrayweights = T, trend = T, robust = T,  testgroup = "GCA", controlgroup = "CTRL")
 GCA_vs_CTRL_FDR <- GCA_vs_CTRL[GCA_vs_CTRL$adj.P.Val < 0.05,] 
 GCA_vs_CTRL_Hyper <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC > 0,] 
 GCA_vs_CTRL_Hypo <- GCA_vs_CTRL_FDR[GCA_vs_CTRL_FDR$logFC < 0,]
+ 
+# β-value differentially
+  
+Function_merge <- function(x = beta, y = FDR, by = 0){
+  matrix <- merge(x, y, by=by)
+  rownames(matrix)<-matrix[,1]
+  matrix[,-1]
+}
+
+Beta_merged <- Function_merge(x = Beta, y =GCA_vs_CTRL , by=0)    
+CTRL <- pdata$Sample_Name[pdata$Disease_Group=="CTRL"]
+GCA <- pdata$Sample_Name[pdata$Disease_Group=="GCA"]
+Beta_merged$GCA_CTRL_dif <- apply(beta_merged[, GCA],1,mean) -apply(beta_merged[,CTRL],1,mean)
+Beta_merged$CTRL_mean<-apply(beta_merged[,colnames(beta_merged) %in% CTRL], 1, mean)
+Beta_merged$GCA_mean<-apply(beta_merged[,colnames(beta_merged) %in% GCA], 1, mean)
+DMPs_BETA <- subset(Beta_merged, (Beta_merged$GCA_CTRL1_adj.P.Val < 0.05))
     
+#Annotation 
+Annotation <- as.data.frame(getAnnotation(gset))
     
+#RefGene_Group
+UCSC_RefGene_Group <- data.frame(annotation$UCSC_RefGene_Group, rownames(annotation))
+RefGene_Group <- UCSC_RefGene_Group[UCSC_RefGene_Group$rownames.annotation. %in% rownames(GCA_vs_CTRL_FDR),]
+Borrar <- c("rownames.annotation.")
+RefGene_Group2 <- data.frame(RefGene_Group[, !(names(RefGene_Group)%in% Borrar)]) 
+rownames(RefGene_Group2) <- RefGene_Group$rownames.annotation.
+GRUPO = data.frame(RefGene_Group2[c(rownames(GCA_vs_CTRL_FDR)),])
+rownames(GRUPO) <- rownames(GCA_vs_CTRL_FDR)
+
+#Relation_to_Island
+Relation_to_Island <- data.frame(annotation$Relation_to_Island, rownames(annotation))
+to_Island <- Relation_to_Island[Relation_to_Island$rownames.annotation. %in% rownames(GCA_vs_CTRL_FDR),] 
+Borrar <- c("rownames.annotation.")
+to_Island2 <- data.frame(to_Island[, !(names(to_Island)%in% Borrar)])
+rownames(to_Island2) <- to_Island$rownames.annotation.
+ISLA = data.frame(to_Island2[c(rownames(GCA_vs_CTRL_FDR)),])
+rownames(ISLA) <- rownames(GCA_vs_CTRL_FDR)
+
+#Genes
+Name_genes <- data.frame(annotation$UCSC_RefGene_Name, rownames(annotation))
+Genes <- Name_genes[Name_genes$rownames.annotation. %in% rownames(GCA_vs_CTRL_FDR),]
+Borrar <- c("rownames.annotation.")
+Genes2 <- data.frame(Genes[, !(names(Genes)%in% Borrar)])
+rownames(Genes2) <- Genes$rownames.annotation.
+GENES = data.frame(Genes2[c(rownames(GCA_vs_CTRL_FDR)),])
+rownames(GENES) <- rownames(GCA_vs_CTRL_FDR)
+
+# Chromosomes
+Chromosome <- data.frame(annotation$chr, rownames(annotation))
+Chromosome2 <- Chromosome[Chromosome$rownames.annotation.. %in% rownames(GCA_vs_CTRL_FDR),]
+Borrar <- c("rownames.annotation.")
+Chromosome2 <- data.frame(Chromosome[, !(names(Chromosome)%in% borrar)])
+rownames(Chromosome2) <- Chromosome$rownames.annotation.
+CHR = data.frame(Chromosome2[c(rownames(GCA_vs_CTRL_FDR)),])
+rownames(CHR) <- rownames(GCA_vs_CTRL_FDR)
+
+#Position
+BP <- data.frame(annotation$pos, rownames(annotation))
+BP2 <- BP[BP$rownames.annotation. %in% rownames(GCA_vs_CTRL_FDR),]
+Borrar <- c("rownames.annotation.")
+BP2 <- data.frame(BP[, !(names(BP)%in% Borrar)])
+rownames(BP2) <- BP$rownames.annotation.
+BP_F = data.frame(BP2[c(rownames(GCA_vs_CTRL_FDR)),])
+rownames(BP_F) <- rownames(GCA_vs_CTRL_FDR)
+
+#Final table
+DMPs_BETA_ORDEN_FDR = DMPs_BETA[c(rownames(GCA_vs_CTRL_FDR)),]
+GCA_CTRL_FDR_P_FDR <- GCA_vs_CTRL_FDR[,c(1,4,5)]
+TABLA_FINAL_GCA_CTRL <- cbind(CHR, BP_F, GENES, GRUPO, ISLA, DMPs_BETA_ORDEN_FDR, GCA_CTRL_FDR_P_FDR)
+TABLA_FINAL_GCA_CTRL$METHYLATION = ifelse(TABLA_FINAL_GCA_CTRL$FDR < 0.05 & abs(TABLA_FINAL_GCA_CTRL$Dif_Beta) >= 0, 
+                                  ifelse(TABLA_FINAL_GCA_CTRL$Dif_Beta > 0 ,'Hypermethylated','Hypomethylated'),'Stable')
+
+
     
-    
+
  
     
