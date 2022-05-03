@@ -85,8 +85,23 @@ mdsPlot(M, numPositions = 500000, sampGroups = pdata$Age, sampNames = pdata$Samp
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Slide, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Slide")
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Array, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Array")
 mdsPlot(M, numPositions = 500000, sampGroups = pdata$Sample_plate, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Sample_Plate")
-mdsPlot(M, numPositions = 500000co, sampGroups = pdata$Day_sorter, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Day_Sorter")
-
+mdsPlot(M, numPositions = 500000, sampGroups = pdata$Day_sorter, sampNames = pdata$Sample_Name, legendPos = "topright", main = "Meth_Day_Sorter")
+   
+# PCA
+M1 <- data.frame(t(M))
+PCobj = prcomp(M1, retx = T, center = T, scale. = T)
+attributes(PCobj) 
+PCs = PCobj$x 
+summary(PCobj)
+autoplot(PCobj, data = pdata, colour = "Group", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Disease_Group", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Sex", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Age", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Slide", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Array", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Sample_plate", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Sample_Well", label.size = 3, shape = FALSE)
+autoplot(PCobj, data = pdata, colour = "Day_sorter", label.size = 3, shape = FALSE)
     
     
     
