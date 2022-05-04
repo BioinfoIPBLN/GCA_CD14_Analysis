@@ -22,7 +22,7 @@ pdata <- as.data.frame(pData(rgset))
 snps <- data.frame(getSnpBeta(rgset))
 
 #Quality Control before normalization
-quality_copntrol <- as.data.frame(minfi::getQC(minfi::preprocessRaw(rgset))) %>%
+quality_control <- as.data.frame(minfi::getQC(minfi::preprocessRaw(rgset))) %>%
   dplyr::mutate(
     badSampleCutoff = 10,
     Sample = pdata$Sample_Name,
@@ -30,7 +30,7 @@ quality_copntrol <- as.data.frame(minfi::getQC(minfi::preprocessRaw(rgset))) %>%
       .data$mMed < badSampleCutoff |
         .data$uMed < badSampleCutoff,
       "Suboptimal",
-      "OK")
+      "OK"))
 qcReport(rgset, sampNames=pdata$Sample_Name, sampGroups=pdata$Disease_Group, pdf="qcReport.pdf")
 densityPlot(rgset, sampGroups = pdata$Disease_Group, main = "METHYLATION", legend = TRUE, xlim = c(0,1.0), ylim =c(0,4.5))
  
